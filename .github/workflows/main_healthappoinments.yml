@@ -12,11 +12,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: ./citasapi
     steps:
       - uses: actions/checkout@v2
-        with: 
-          working-directory: ./citasapi
           
       - name: Set up Java version
         uses: actions/setup-java@v2
