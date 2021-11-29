@@ -36,6 +36,10 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./citasapi
+
     needs: build
     environment:
       name: 'Production'
