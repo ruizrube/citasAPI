@@ -37,23 +37,32 @@ public class AppoinmentApplication implements CommandLineRunner {
 	public void run(String... args) throws Exception {
 
 		if (userService.count() == 0) {
+			User doctor = new User();
+			doctor.setFirstName("Doctor");
+			doctor.setLastName("Facultativo");
+			doctor.setIdentityDocument("0101010");
+			doctor=userService.save(doctor);
+			
+			
 			User user = new User();
-			user.setFirstName("Usuario");
+			user.setFirstName("Pepe");
 			user.setLastName("Andaluz");
 			user.setIdentityDocument("123");
-			userService.save(user);
+			user.setDoctor(doctor);
+			user=userService.save(user);
 			
-			appointmentService.confirmAppointment(user.getId(), LocalDateTime.of(2021, 12, 20, 18, 0),
+			appointmentService.confirmAppointment(user.getIdentityDocument(), LocalDateTime.of(2021, 12, 20, 18, 0),
 					AppointmentType.FACE_TO_FACE, "dolor garganta");
 
 			
 			user = new User();
-			user.setFirstName("Usuaria");
+			user.setFirstName("María");
 			user.setLastName("Andaluza");
 			user.setIdentityDocument("456");
-			userService.save(user);
+			user.setDoctor(doctor);
+			user=userService.save(user);
 
-			appointmentService.confirmAppointment(user.getId(), LocalDateTime.of(2021, 12, 30, 12, 0),
+			appointmentService.confirmAppointment(user.getIdentityDocument(), LocalDateTime.of(2021, 12, 30, 12, 0),
 					AppointmentType.FACE_TO_FACE, "revisión");
 
 		}

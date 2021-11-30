@@ -13,8 +13,8 @@ public class UserService {
 		this.userRepository = userRepository;
 	}
 
-	public void save(User user) {
-		this.userRepository.save(user);
+	public User save(User user) {
+		return this.userRepository.saveAndFlush(user);
 	}
 
 	public long count() {

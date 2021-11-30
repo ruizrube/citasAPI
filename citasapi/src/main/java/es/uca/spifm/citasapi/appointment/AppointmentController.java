@@ -31,7 +31,7 @@ class AppointmentController {
 //	// end::get-aggregate-root[]
 
 	@PostMapping("/Appointments")
-	String newAppointment(@RequestParam String userId, @RequestParam LocalDateTime dateTime,
+	Appointment newAppointment(@RequestParam String userId, @RequestParam LocalDateTime dateTime,
 			@RequestParam AppointmentType type, @RequestParam String subject) {
 
 		try {

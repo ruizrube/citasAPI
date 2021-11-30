@@ -3,6 +3,7 @@ package es.uca.spifm.citasapi.user;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 
 import org.hibernate.annotations.GenericGenerator;
 
@@ -18,6 +19,11 @@ public class User {
 	private String lastName;
 	private String nuhsa;
 	private String identityDocument;
+	
+	
+	@ManyToOne
+	private User doctor;
+	
 
 	public String getId() {
 		return id;
@@ -54,6 +60,16 @@ public class User {
 
 	public void setLastName(String lastName) {
 		this.lastName = lastName;
+	}
+
+
+	public User getDoctor() {
+		return doctor;
+	}
+
+
+	public void setDoctor(User doctor) {
+		this.doctor = doctor;
 	}
 
 }

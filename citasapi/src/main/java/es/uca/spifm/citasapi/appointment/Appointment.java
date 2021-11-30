@@ -3,6 +3,8 @@ package es.uca.spifm.citasapi.appointment;
 import java.time.LocalDateTime;
 
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
@@ -20,11 +22,20 @@ public class Appointment {
 	@GeneratedValue(generator="system-uuid")
 	@GenericGenerator(name="system-uuid", strategy = "uuid")
 	private String id;
+	
 	@ManyToOne
     @JsonIgnore
 	private User user;
+	
+	@ManyToOne
+    @JsonIgnore
+	private User assignedDoctor;
+	
+	
 	private LocalDateTime dateTime;
 	private String subject;
+
+	@Enumerated(value = EnumType.STRING)
 	private AppointmentType type;
 
 	public LocalDateTime getDateTime() {
@@ -65,6 +76,14 @@ public class Appointment {
 
 	public void setType(AppointmentType type) {
 		this.type = type;
+	}
+
+	public User getAssignedDoctor() {
+		return assignedDoctor;
+	}
+
+	public void setAssignedDoctor(User assignedDoctor) {
+		this.assignedDoctor = assignedDoctor;
 	}
 
 }

@@ -1,8 +1,12 @@
 package es.uca.spifm.citasapi.appointment;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 import org.springframework.stereotype.Service;
 
@@ -31,7 +35,7 @@ public class AppointmentService {
 
 	}
 
-	public Optional<Appointment> findNextAppointment(String userIdentityDocument) throws UserNotFoundException{
+	public Optional<Appointment> findNextAppointment(String userIdentityDocument) throws UserNotFoundException {
 		Optional<User> user = userRepository.findByIdentityDocument(userIdentityDocument);
 		if (user.isPresent()) {
 
@@ -48,26 +52,57 @@ public class AppointmentService {
 		}
 	}
 
-	public LocalDateTime findNextAvailableSlot(AppointmentType type) {
-		return null;
-	}
+	public Appointment confirmAppointment(String userId, LocalDateTime dateTime, AppointmentType type, String subject)
+			throws UserNotFoundException {
 
-	public String confirmAppointment(String userId, LocalDateTime dateTime, AppointmentType type, String subject) throws UserNotFoundException {
-
-		Optional<User> user = userRepository.findById(userId);
+		Optional<User> user = userRepository.findByIdentityDocument(userId);
 		if (user.isPresent()) {
-			Appointment appointment = new Appointment();
-			appointment.setUser(user.get());
-			appointment.setDateTime(dateTime);
-			appointment.setType(type);
-			appointment.setSubject(subject);
-			appointmentRepository.save(appointment);
+
+			List<Appointment> appointments = appointmentRepository.findByAssignedDoctorAndDateTimeBetween(
+					user.get().getDoctor(), dateTime.truncatedTo(ChronoUnit.HOURS),
+					dateTime.plusHours(1).truncatedTo(ChronoUnit.HOURS));
+
+			if (appointments.size() == 0) {
+				Appointment appointment = new Appointment();
+				appointment.setUser(user.get());
+				appointment.setDateTime(dateTime);
+				appointment.setType(type);
+				appointment.setSubject(subject);
+				appointment.setAssignedDoctor(user.get().getDoctor());
+				return appointmentRepository.save(appointment);
+			} else {
+				throw new AppointmentNotAvailableException(user.get().getDoctor(), dateTime);
+			}
 
 		} else {
 			throw new UserNotFoundException(userId);
 		}
 
-		return "";
+	}
+
+	public Appointment confirmAppointment(String userId, LocalDateTime dateTime, AppointmentType type)
+			throws UserNotFoundException {
+
+		return confirmAppointment(userId, dateTime, type, "");
+
+	}
+
+	public LocalDateTime findNextAvailableSlot(AppointmentType type) {
+
+		return findNextAvailableSlotAfterDate(type, LocalDateTime.now());
+
+	}
+
+	public LocalDateTime findNextAvailableSlotAfterDate(AppointmentType type, LocalDateTime dateTime) {
+
+		Random ran = new Random(System.currentTimeMillis());
+		LocalDate newDate = dateTime.plusDays(ran.nextInt(10) + 1).toLocalDate();
+
+		ran = new Random(System.currentTimeMillis());
+		LocalTime newTime = LocalTime.of(ran.nextInt(12) + 8, 0);
+
+		return LocalDateTime.of(newDate, newTime);
+
 	}
 
 	public Appointment findById(String id) {
