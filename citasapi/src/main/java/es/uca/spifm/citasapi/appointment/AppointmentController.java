@@ -1,6 +1,7 @@
 package es.uca.spifm.citasapi.appointment;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
@@ -24,11 +25,11 @@ class AppointmentController {
 
 	// Aggregate root
 	// tag::get-aggregate-root[]
-//	@GetMapping("/Appointments")
-//	List<Appointment> all() {
-//		return repository.findAll();
-//	}
-//	// end::get-aggregate-root[]
+	@GetMapping("/Appointments")
+	List<Appointment> all() {
+		return service.findAll();
+	}
+	// end::get-aggregate-root[]
 
 	@PostMapping("/Appointments")
 	Appointment newAppointment(@RequestParam String userId, @RequestParam LocalDateTime dateTime,

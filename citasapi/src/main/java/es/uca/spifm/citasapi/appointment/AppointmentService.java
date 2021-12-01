@@ -109,4 +109,9 @@ public class AppointmentService {
 		return appointmentRepository.findById(id).orElseThrow(() -> new AppointmentNotFoundException(id));
 
 	}
+
+	public List<Appointment> findAll() {
+		// TODO Auto-generated method stub
+		return appointmentRepository.findAll();
+	}
 }

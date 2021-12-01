@@ -1,5 +1,6 @@
 package es.uca.spifm.citasapi.user;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -24,6 +25,11 @@ public class UserService {
 
 	public Optional<User> findById(String userIdentityDocument) {
 		return userRepository.findByIdentityDocument(userIdentityDocument);
+	}
+
+	public List<User> findAll() {
+		// TODO Auto-generated method stub
+		return userRepository.findAll();
 	}
 
 	

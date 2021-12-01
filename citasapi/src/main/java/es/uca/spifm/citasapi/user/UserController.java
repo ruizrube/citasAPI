@@ -1,5 +1,6 @@
 package es.uca.spifm.citasapi.user;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +15,14 @@ class UserController {
 	UserController(UserService service) {
 		this.service = service;
 	}
+
+	// Aggregate root
+	// tag::get-aggregate-root[]
+	@GetMapping("/Users")
+	List<User> all() {
+		return service.findAll();
+	}
+	// end::get-aggregate-root[]
 
 	// Single item
 	@GetMapping("/Users/{id}")

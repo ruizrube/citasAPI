@@ -19,11 +19,11 @@
 	</properties>
 
 	<dependencies>
-<dependency>
-      <groupId>com.google.actions</groupId>
-      <artifactId>actions-on-google</artifactId>
-      <version>1.0.2</version>
-     </dependency>
+		<dependency>
+			<groupId>com.google.actions</groupId>
+			<artifactId>actions-on-google</artifactId>
+			<version>1.0.2</version>
+		</dependency>
 
 
 
@@ -37,8 +37,7 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		<!-- <dependency> <groupId>org.springframework.boot</groupId> <artifactId>spring-boot-starter-security</artifactId> 
-			</dependency> -->
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>

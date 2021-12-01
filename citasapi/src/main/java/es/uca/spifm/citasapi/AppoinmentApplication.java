@@ -41,29 +41,35 @@ public class AppoinmentApplication implements CommandLineRunner {
 			doctor.setFirstName("Doctor");
 			doctor.setLastName("Facultativo");
 			doctor.setIdentityDocument("0101010");
-			doctor=userService.save(doctor);
-			
-			
+			doctor = userService.save(doctor);
+
 			User user = new User();
 			user.setFirstName("Pepe");
 			user.setLastName("Andaluz");
-			user.setIdentityDocument("123");
+			user.setIdentityDocument("111");
 			user.setDoctor(doctor);
-			user=userService.save(user);
-			
-			appointmentService.confirmAppointment(user.getIdentityDocument(), LocalDateTime.of(2021, 12, 20, 18, 0),
-					AppointmentType.FACE_TO_FACE, "dolor garganta");
+			user = userService.save(user);
 
-			
 			user = new User();
 			user.setFirstName("María");
 			user.setLastName("Andaluza");
-			user.setIdentityDocument("456");
+			user.setIdentityDocument("222");
 			user.setDoctor(doctor);
-			user=userService.save(user);
-
-			appointmentService.confirmAppointment(user.getIdentityDocument(), LocalDateTime.of(2021, 12, 30, 12, 0),
-					AppointmentType.FACE_TO_FACE, "revisión");
+			user = userService.save(user);
+			
+			user = new User();
+			user.setFirstName("Luis");
+			user.setLastName("Andaluz");
+			user.setIdentityDocument("333");
+			user.setDoctor(doctor);
+			user = userService.save(user);
+			
+			user = new User();
+			user.setFirstName("Carmen");
+			user.setLastName("Andaluza");
+			user.setIdentityDocument("444");
+			user.setDoctor(doctor);
+			user = userService.save(user);
 
 		}
 

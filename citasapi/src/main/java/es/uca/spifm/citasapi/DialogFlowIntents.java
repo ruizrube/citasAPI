@@ -42,20 +42,27 @@ public class DialogFlowIntents extends DialogflowApp {
 	private AppointmentService appointmentService;
 
 	@ForIntent("Identificarme Intent")
-	public ActionResponse identificationIntent(ActionRequest request) {
+	public ActionResponse identificateUserIntent(ActionRequest request) {
 
-		Optional<User> user = userService.findById((String) request.getParameter("identityDocument"));
+		// Read request parameter
+		String identityDocument = (String) request.getParameter("identityDocument");
+
+		Optional<User> user = userService.findById(identityDocument);
 		ResponseBuilder builder;
 		if (user.isPresent()) {
+
+			// Write response
 			builder = getResponseBuilder(request);
-			builder.add("Hola " + user.get().getFirstName() + " " + user.get().getLastName());
+			builder.add("Hola " + user.get().getFirstName() + " " + user.get().getLastName() + ". ¿Cómo puedo ayudarte?");
+
+			// Set output context and its parameters
 			ActionContext context = new ActionContext("ctx-useridentified", 10);
 			Map<String, String> params = new HashMap<String, String>();
 			params.put("identityDocument", user.get().getIdentityDocument());
 			params.put("userName", user.get().getFirstName());
 			context.setParameters(params);
 			builder.add(context);
-			
+
 		} else {
 
 			builder = getResponseBuilder(request);
@@ -70,8 +77,8 @@ public class DialogFlowIntents extends DialogflowApp {
 	@ForIntent("Mi Próxima Cita Intent")
 	public ActionResponse rememberAppointmentIntent(ActionRequest request) {
 
+		// Read context parameter
 		ActionContext context = request.getContext("ctx-useridentified");
-
 		String identityNumber = (String) context.getParameters().get("identityDocument");
 
 		ResponseBuilder builder;
@@ -82,9 +89,7 @@ public class DialogFlowIntents extends DialogflowApp {
 			if (appointmentOpt.isPresent()) {
 				Appointment appointment = appointmentOpt.get();
 				builder = getResponseBuilder(request);
-				builder.add("Su próxima cita es el día " + appointment.getDateTime().getDayOfMonth() + " a las "
-						+ appointment.getDateTime().getHour() + " horas y " + appointment.getDateTime().getMinute()
-						+ " minutos");
+				builder.add("Su próxima cita es el día " + renderDateTime(appointment.getDateTime()));
 
 			} else {
 
@@ -100,45 +105,18 @@ public class DialogFlowIntents extends DialogflowApp {
 		return actionResponse;
 	}
 
-	@ForIntent("Registrar Cita Intent")
-	public ActionResponse registerAppointmentIntent(ActionRequest request) {
-		
-		ActionContext context = request.getContext("ctx-useridentified");
-
-		// Read user id
-		String identityNumber = (String) context.getParameters().get("identityDocument");
-
-		// Read date time
-
-		Object obj = request.getParameter("dateTime");
-		String value = "";
-		if (obj instanceof LinkedTreeMap) {
-			LinkedTreeMap map = (LinkedTreeMap) request.getParameter("dateTime");
-			value = (String) map.values().stream().findFirst().get();
-		} else if (obj instanceof String) {
-			value = (String) request.getParameter("dateTime");
-		}
-
-		LocalDateTime dateTime = LocalDateTime.parse(value, isoDateFormatter);
-
-		// Read appointmentType
-		AppointmentType appointmentType = AppointmentType.valueOf((String) request.getParameter("appointmentType"));
-		String subject = (String) request.getParameter("subject");
-
-		return confirmAppointment(request, identityNumber, dateTime, appointmentType, subject);
-	}
-
-	@ForIntent("Consultar Disponibilidad Intent")
-	public ActionResponse queryAvaliability(ActionRequest request) {
+	@ForIntent("Solicitar Cita Intent")
+	public ActionResponse queryAvaliabilityIntent(ActionRequest request) {
 
 		LocalDateTime slot = appointmentService.findNextAvailableSlot(AppointmentType.FACE_TO_FACE);
 
 		ResponseBuilder builder = getResponseBuilder(request);
 
-		builder.add("La siguiente cita disponible es para el día " + renderDateTime(slot)
-				+ ". ¿Quieres confirmar esta cita?");
+		builder.add("La siguiente fecha disponible es el día " + renderDateTime(slot)
+				+ ". ¿Te gustaría solicitar una cita para ese día?");
 
-		ActionContext context = new ActionContext("ctx-slotproposed", 10);
+		// Set output context
+		ActionContext context = new ActionContext("ctx-slotproposed", 5);
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("dateTime", slot.format(isoDateFormatter));
 		context.setParameters(params);
@@ -149,73 +127,60 @@ public class DialogFlowIntents extends DialogflowApp {
 
 	}
 
-	@ForIntent("Consultar Disponibilidad Intent - yes")
+	@ForIntent("Solicitar Cita Intent - yes")
 	public ActionResponse confirmAppointmentIntent(ActionRequest request) {
 
-		// Read user id
+		// Read user id from the context
 		ActionContext context = request.getContext("ctx-useridentified");
 		String identityNumber = (String) context.getParameters().get("identityDocument");
 
-		// Read date time
+		// Read date time from the context
 		context = request.getContext("ctx-slotproposed");
-		String value = (String) context.getParameters().get("dateTime");
-		LocalDateTime dateTime = LocalDateTime.parse(value, isoDateFormatter);
+		LocalDateTime dateTime = readDateTime(context.getParameters().get("dateTime"));
 
-		// Read appointmentType
-//		AppointmentType appointmentType = AppointmentType.valueOf((String) request.getParameter("appointmentType"));
-//		String subject = (String) request.getParameter("subject");
-//		
-		return confirmAppointment(request, identityNumber, dateTime, AppointmentType.FACE_TO_FACE, "subject");
-	}
+		// Read appointmentType and subject from the request
+		AppointmentType appointmentType = AppointmentType.valueOf((String) request.getParameter("appointmentType"));
+		String subject = (String) request.getParameter("subject");
 
-	@ForIntent("Consultar Disponibilidad Intent - no")
-	public ActionResponse cancelAppointmentIntent(ActionRequest request) {
-
-		// Read user id
-		ActionContext context = request.getContext("ctx-useridentified");
-		String identityNumber = (String) context.getParameters().get("identityDocument");
-
-		// Read date time
-		context = request.getContext("ctx-slotproposed");
-		String value = (String) context.getParameters().get("dateTime");
-		LocalDateTime dateTime = LocalDateTime.parse(value, isoDateFormatter);
-
-		// Read appointmentType
-//		AppointmentType appointmentType = AppointmentType.valueOf((String) request.getParameter("appointmentType"));
-//		String subject = (String) request.getParameter("subject");
-//		
-		return confirmAppointment(request, identityNumber, dateTime, AppointmentType.FACE_TO_FACE, "subject");
-	}
-
-	private ActionResponse confirmAppointment(ActionRequest request, String identityNumber, LocalDateTime dateTime,
-			AppointmentType appointmentType, String subject) {
-		ResponseBuilder builder;
+		ResponseBuilder builder = getResponseBuilder(request);
 
 		Appointment appointment;
 		try {
 
 			appointment = appointmentService.confirmAppointment(identityNumber, dateTime, appointmentType, subject);
 
-			builder = getResponseBuilder(request);
 			builder.add("Le confirmo que su próxima cita es el día " + renderDateTime(appointment.getDateTime()));
+			builder.removeContext("ctx-slotproposed");
 
 		} catch (UserNotFoundException e) {
-			builder = getResponseBuilder(request);
 			builder.add(NO_USER_MSG);
 		} catch (AppointmentNotAvailableException e) {
-			builder = getResponseBuilder(request);
 			builder.add(NO_APPOINTMENT_MSG);
 		}
 
 		ActionResponse actionResponse = builder.build();
+
 		return actionResponse;
+
 	}
 
 	private String renderDateTime(LocalDateTime dateTime) {
 		// TODO Auto-generated method stub
 		return dateTime.getDayOfMonth() + " de "
-				+ dateTime.getMonth().getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es_ES")) + " a las "
+				+ dateTime.getMonth().getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es")) + " a las "
 				+ dateTime.getHour() + " horas y " + dateTime.getMinute() + " minutos";
+	}
+
+	private LocalDateTime readDateTime(Object parameter) {
+		String value = "";
+		if (parameter instanceof LinkedTreeMap) {
+			LinkedTreeMap map = (LinkedTreeMap) parameter;
+			value = (String) map.values().stream().findFirst().get();
+		} else if (parameter instanceof String) {
+			value = (String) parameter;
+		}
+
+		return LocalDateTime.parse(value, isoDateFormatter);
 	}
 
 }
