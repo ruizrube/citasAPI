@@ -53,7 +53,8 @@ public class DialogFlowIntents extends DialogflowApp {
 
 			// Write response
 			builder = getResponseBuilder(request);
-			builder.add("Hola " + user.get().getFirstName() + " " + user.get().getLastName() + ". ¿Cómo puedo ayudarte?");
+			builder.add(
+					"Hola " + user.get().getFirstName() + " " + user.get().getLastName() + ". ¿Cómo puedo ayudarte?");
 
 			// Set output context and its parameters
 			ActionContext context = new ActionContext("ctx-useridentified", 10);
@@ -158,6 +159,17 @@ public class DialogFlowIntents extends DialogflowApp {
 			builder.add(NO_APPOINTMENT_MSG);
 		}
 
+		ActionResponse actionResponse = builder.build();
+
+		return actionResponse;
+
+	}
+
+	@ForIntent("Solicitar Cita Intent - no")
+	public ActionResponse cancelAppointmentIntent(ActionRequest request) {
+
+		ResponseBuilder builder = getResponseBuilder(request);
+		builder.removeContext("ctx-slotproposed");
 		ActionResponse actionResponse = builder.build();
 
 		return actionResponse;
