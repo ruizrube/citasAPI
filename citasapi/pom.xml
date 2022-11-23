@@ -9,7 +9,7 @@
 	</parent>
 	<groupId>es.uca.spifm</groupId>
 	<artifactId>citasapi</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.2.0</version>
 	<name>citasapi</name>
 	<description>Demo project for Spring Boot</description>
 	<properties>
