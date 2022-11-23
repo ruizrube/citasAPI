@@ -18,14 +18,14 @@ class UserController {
 
 	// Aggregate root
 	// tag::get-aggregate-root[]
-	@GetMapping("/Users")
+	@GetMapping("/users")
 	List<User> all() {
 		return service.findAll();
 	}
 	// end::get-aggregate-root[]
 
 	// Single item
-	@GetMapping("/Users/{id}")
+	@GetMapping("/users/{id}")
 	Optional<User> one(@PathVariable String id) {
 
 		return service.findById(id);

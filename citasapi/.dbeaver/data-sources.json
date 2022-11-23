@@ -1,0 +1,33 @@
+{
+	"folders": {},
+	"connections": {
+		"mysql8-17f69c202dd-347da85fe211dba7": {
+			"provider": "mysql",
+			"driver": "mysql8",
+			"name": "appointments",
+			"save-password": true,
+			"read-only": false,
+			"configuration": {
+				"host": "localhost",
+				"port": "3306",
+				"database": "appointments",
+				"url": "jdbc:mysql://localhost:3306/appointments",
+				"home": "/usr/local/mysql-5.7.19-macos10.12-x86_64",
+				"type": "dev",
+				"auth-model": "native",
+				"handlers": {}
+			}
+		}
+	},
+	"connection-types": {
+		"dev": {
+			"name": "Development",
+			"color": "255,255,255",
+			"description": "Regular development database",
+			"auto-commit": true,
+			"confirm-execute": false,
+			"confirm-data-change": false,
+			"auto-close-transactions": false
+		}
+	}
+}

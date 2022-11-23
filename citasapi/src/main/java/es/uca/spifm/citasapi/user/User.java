@@ -3,13 +3,12 @@ package es.uca.spifm.citasapi.user;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
 import org.hibernate.annotations.GenericGenerator;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 @Entity
+@Table(name="appuser")
 public class User {
 
 	@Id
@@ -19,32 +18,15 @@ public class User {
 	private String id;
 	private String firstName;
 	private String lastName;
-	private String nuhsa;
-	private String identityDocument;
+	private String identityDocumentNumber;
 
-	@ManyToOne
-	@JsonIgnore
-	private User doctor;
-
+	
 	public String getId() {
 		return id;
 	}
 
-	public String getNuhsa() {
-		return nuhsa;
-	}
 
-	public void setNuhsa(String nuhsa) {
-		this.nuhsa = nuhsa;
-	}
 
-	public String getIdentityDocument() {
-		return identityDocument;
-	}
-
-	public void setIdentityDocument(String identityDocument) {
-		this.identityDocument = identityDocument;
-	}
 
 	public String getFirstName() {
 		return firstName;
@@ -62,12 +44,20 @@ public class User {
 		this.lastName = lastName;
 	}
 
-	public User getDoctor() {
-		return doctor;
+
+
+
+	public String getIdentityDocumentNumber() {
+		return identityDocumentNumber;
 	}
 
-	public void setDoctor(User doctor) {
-		this.doctor = doctor;
+
+
+
+	public void setIdentityDocumentNumber(String identityDocumentNumber) {
+		this.identityDocumentNumber = identityDocumentNumber;
 	}
+
+
 
 }

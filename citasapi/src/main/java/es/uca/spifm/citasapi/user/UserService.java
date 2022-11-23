@@ -23,13 +23,30 @@ public class UserService {
 		return userRepository.count();
 	}
 
-	public Optional<User> findById(String userIdentityDocument) {
-		return userRepository.findByIdentityDocument(userIdentityDocument);
+	public Optional<User> findById(String userId) {
+		return userRepository.findById(userId);
 	}
 
 	public List<User> findAll() {
-		// TODO Auto-generated method stub
 		return userRepository.findAll();
+	}
+
+	public Optional<User> findByIdentityDocumentNumber(String identityDocumentNumber) {
+		return userRepository.findByIdentityDocumentNumber(identityDocumentNumber);
+
+	}
+
+	public Optional<User> findByIdentityDocumentNumberAndGivenName(String identityDocumentNumber, String givenName) {
+		
+		Optional<User> usr= userRepository.findByIdentityDocumentNumber(identityDocumentNumber);
+		
+		if(usr.isPresent()) {
+			if((usr.get().getFirstName() + " " +usr.get().getLastName()).toLowerCase().contains(givenName.toLowerCase())){
+				return usr;
+			}
+		}
+		return Optional.empty();
+
 	}
 
 	

@@ -17,6 +17,8 @@ import com.google.actions.api.ActionResponse;
 import com.google.actions.api.DialogflowApp;
 import com.google.actions.api.ForIntent;
 import com.google.actions.api.response.ResponseBuilder;
+import com.google.api.services.dialogflow_fulfillment.v2.model.EventInput;
+import com.google.api.services.dialogflow_fulfillment.v2.model.WebhookResponse;
 import com.google.gson.internal.LinkedTreeMap;
 
 import es.uca.spifm.citasapi.appointment.Appointment;
@@ -30,9 +32,15 @@ import es.uca.spifm.citasapi.user.UserService;
 @Component
 public class DialogFlowIntents extends DialogflowApp {
 
-	private static final String NO_USER_MSG = "Lo siento, pero no te tengo registrado en el sistema de salud";
+	private static final String NO_USER_MSG = "Lo siento pero no te tengo registrado en la agenda. Llámenos por teléfono. Gracias";
 
-	private static final String NO_APPOINTMENT_MSG = "Lo siento, pero a esa hora no hay disponibilidad de cita con su doctor";
+	private static final String NO_APPOINTMENT_MSG = "Lo siento pero a esa hora no hay disponibilidad de cita con su peluquero";
+
+	private static final String NO_AVAILABILITY = "Lo siento pero tenemos la agenda completa. Inténtelo de nuevo mañana";
+
+	private static final String NO_APPOINTMENT_FOR_USER = "Actualmente no tiene ninguna cita concertada con nosotros";
+
+	private static final String NO_USER_IDENTIFIED = "Lo siento, para realizar cualquier gestión debe primero identificarse";
 
 	private DateTimeFormatter isoDateFormatter = DateTimeFormatter.ISO_DATE_TIME;
 
@@ -41,117 +49,150 @@ public class DialogFlowIntents extends DialogflowApp {
 	@Autowired
 	private AppointmentService appointmentService;
 
-	@ForIntent("Identificarme Intent")
+	@ForIntent("SignIn")
 	public ActionResponse identificateUserIntent(ActionRequest request) {
 
-		// Read request parameter
-		String identityDocument = (String) request.getParameter("identityDocument");
+		System.out.println("Processing intent: SignIn");
 
-		Optional<User> user = userService.findById(identityDocument);
-		ResponseBuilder builder;
+		ResponseBuilder builder = getResponseBuilder(request);
+
+		// Read request parameter
+		String identityDocumentNumber = (String) request.getParameter("identityDocumentNumber");
+		
+		String givenName = readPerson(request.getParameter("givenName"));
+
+
+		Optional<User> user = userService.findByIdentityDocumentNumberAndGivenName(identityDocumentNumber,givenName);
+
 		if (user.isPresent()) {
 
 			// Write response
-			builder = getResponseBuilder(request);
 			builder.add(
-					"Hola " + user.get().getFirstName() + " " + user.get().getLastName() + ". ¿Cómo puedo ayudarte?");
+					"Hola " + user.get().getFirstName() + " " + user.get().getLastName() + ", ¿cómo puedo ayudarte?");
 
 			// Set output context and its parameters
-			ActionContext context = new ActionContext("ctx-useridentified", 10);
+			ActionContext context = new ActionContext("user-identified", 10);
 			Map<String, String> params = new HashMap<String, String>();
-			params.put("identityDocument", user.get().getIdentityDocument());
+			params.put("userId", user.get().getId());
 			params.put("userName", user.get().getFirstName());
 			context.setParameters(params);
+
 			builder.add(context);
 
 		} else {
-
-			builder = getResponseBuilder(request);
 			builder.add(NO_USER_MSG);
 		}
 
-		ActionResponse actionResponse = builder.build();
-
-		return actionResponse;
+		return builder.build();
 	}
 
-	@ForIntent("Mi Próxima Cita Intent")
+	
+
+	@ForIntent("NextAppointment")
 	public ActionResponse rememberAppointmentIntent(ActionRequest request) {
+		System.out.println("Processing intent: NextAppointment");
 
-		// Read context parameter
-		ActionContext context = request.getContext("ctx-useridentified");
-		String identityNumber = (String) context.getParameters().get("identityDocument");
+		ResponseBuilder builder = getResponseBuilder(request);
 
-		ResponseBuilder builder;
+		// Read context
+		ActionContext context = request.getContext("user-identified");
 
-		try {
-			Optional<Appointment> appointmentOpt = appointmentService.findNextAppointment(identityNumber);
+		if (context != null) {
+			String userId = (String) context.getParameters().get("userId");
+			String name = (String) context.getParameters().get("userName");
 
-			if (appointmentOpt.isPresent()) {
-				Appointment appointment = appointmentOpt.get();
-				builder = getResponseBuilder(request);
-				builder.add("Su próxima cita es el día " + renderDateTime(appointment.getDateTime()));
+			try {
+				Optional<Appointment> appointmentOpt = appointmentService.findNextAppointment(userId);
 
-			} else {
+				if (appointmentOpt.isPresent()) {
+					Appointment appointment = appointmentOpt.get();
 
-				builder = getResponseBuilder(request);
-				builder.add("No tiene ninguna cita");
+					builder.add("Estimado " + name + ", su próxima cita es el día "
+							+ renderDateTime(appointment.getDateTime()));
+
+				} else {
+
+					builder.add(NO_APPOINTMENT_FOR_USER);
+				}
+			} catch (UserNotFoundException e) {
+				builder.add(NO_USER_MSG);
 			}
-		} catch (UserNotFoundException e) {
-			builder = getResponseBuilder(request);
-			builder.add(NO_USER_MSG);
-		}
+		} else {
+			// triggerCustomEvent(builder,EVENT_IDENTIFY_USER);
+			builder.add(NO_USER_IDENTIFIED);
 
-		ActionResponse actionResponse = builder.build();
-		return actionResponse;
+		}
+		return builder.build();
 	}
 
-	@ForIntent("Solicitar Cita Intent")
+	@ForIntent("MakeAppointment")
 	public ActionResponse queryAvaliabilityIntent(ActionRequest request) {
 
-		LocalDateTime slot = appointmentService.findNextAvailableSlot(AppointmentType.FACE_TO_FACE);
-
 		ResponseBuilder builder = getResponseBuilder(request);
 
-		builder.add("La siguiente fecha disponible es el día " + renderDateTime(slot)
-				+ ". ¿Te gustaría solicitar una cita para ese día?");
+		System.out.println("Processing intent: MakeAppointment");
 
-		// Set output context
-		ActionContext context = new ActionContext("ctx-slotproposed", 5);
-		Map<String, String> params = new HashMap<String, String>();
-		params.put("dateTime", slot.format(isoDateFormatter));
-		context.setParameters(params);
-		builder.add(context);
+		// Read context
+		ActionContext context = request.getContext("user-identified");
 
-		ActionResponse actionResponse = builder.build();
-		return actionResponse;
+		if (context != null) {
+
+			LocalDateTime slot = appointmentService.findNextAvailableSlot(AppointmentType.CONSULTATION);
+
+			if (slot != null) {
+				builder.add("La siguiente fecha disponible es el día " + renderDateTime(slot)
+						+ ". ¿Te gustaría solicitar una cita para ese día?");
+
+				// Read appointmentType 
+				AppointmentType appointmentType = AppointmentType
+						.valueOf((String) request.getParameter("appointmentType"));
+
+				// Set output context
+				context = new ActionContext("appointment-pending", 5);
+				Map<String, String> params = new HashMap<String, String>();
+				params.put("dateTime", slot.format(isoDateFormatter));
+				params.put("appointmentType", appointmentType.name());
+
+				context.setParameters(params);
+				builder.add(context);
+			} else {
+				builder.add(NO_AVAILABILITY);
+			}
+		} else {
+			builder.add(NO_USER_IDENTIFIED);
+
+		}
+
+		return builder.build();
 
 	}
 
-	@ForIntent("Solicitar Cita Intent - yes")
+	@ForIntent("MakeAppointment-confirm")
 	public ActionResponse confirmAppointmentIntent(ActionRequest request) {
-
-		// Read user id from the context
-		ActionContext context = request.getContext("ctx-useridentified");
-		String identityNumber = (String) context.getParameters().get("identityDocument");
-
-		// Read date time from the context
-		context = request.getContext("ctx-slotproposed");
-		LocalDateTime dateTime = readDateTime(context.getParameters().get("dateTime"));
-
-		// Read appointmentType and subject from the request
-		AppointmentType appointmentType = AppointmentType.valueOf((String) request.getParameter("appointmentType"));
-		String subject = (String) request.getParameter("subject");
+		System.out.println("Processing intent: MakeAppointment-confirm");
 
 		ResponseBuilder builder = getResponseBuilder(request);
 
-		Appointment appointment;
+		// Read user id from the context
+		ActionContext context = request.getContext("user-identified");
+		String userId = (String) context.getParameters().get("userId");
+
+		// Read date time from the context
+		context = request.getContext("appointment-pending");
+
+		LocalDateTime dateTime = readDateTime(context.getParameters().get("dateTime"));
+
+		AppointmentType appointmentType = AppointmentType
+				.valueOf(context.getParameters().get("appointmentType").toString());
+
 		try {
 
-			appointment = appointmentService.confirmAppointment(identityNumber, dateTime, appointmentType, subject);
+			Appointment appointment = appointmentService.confirmAppointment(userId, dateTime, appointmentType);
 
-			builder.add("Le confirmo que su próxima cita es el día " + renderDateTime(appointment.getDateTime()));
-			builder.removeContext("ctx-slotproposed");
+			builder.add("Le confirmo que su próxima cita para " + appointment.getType().getLabel().toLowerCase() + " es el "
+					+ renderDateTime(appointment.getDateTime()));
+
+			builder.removeContext("appointment-pending");
 
 		} catch (UserNotFoundException e) {
 			builder.add(NO_USER_MSG);
@@ -159,25 +200,23 @@ public class DialogFlowIntents extends DialogflowApp {
 			builder.add(NO_APPOINTMENT_MSG);
 		}
 
-		ActionResponse actionResponse = builder.build();
-
-		return actionResponse;
+		return builder.build();
 
 	}
 
-	@ForIntent("Solicitar Cita Intent - no")
+	@ForIntent("MakeAppointment-cancel")
 	public ActionResponse cancelAppointmentIntent(ActionRequest request) {
+		System.out.println("Processing intent: MakeAppointment-cancel");
 
 		ResponseBuilder builder = getResponseBuilder(request);
-		builder.removeContext("ctx-slotproposed");
-		ActionResponse actionResponse = builder.build();
 
-		return actionResponse;
+		builder.removeContext("appointment-pending");
+
+		return builder.build();
 
 	}
 
 	private String renderDateTime(LocalDateTime dateTime) {
-		// TODO Auto-generated method stub
 		return dateTime.getDayOfMonth() + " de "
 				+ dateTime.getMonth().getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es")) + " a las "
 				+ dateTime.getHour() + " horas y " + dateTime.getMinute() + " minutos";
@@ -193,6 +232,34 @@ public class DialogFlowIntents extends DialogflowApp {
 		}
 
 		return LocalDateTime.parse(value, isoDateFormatter);
+	}
+
+	private String readPerson(Object parameter) {
+		String value = "";
+		if (parameter instanceof LinkedTreeMap) {
+			LinkedTreeMap map = (LinkedTreeMap) parameter;
+			value = (String) map.values().stream().findFirst().get();
+		} else if (parameter instanceof String) {
+			value = (String) parameter;
+		}
+		return value;
+	}
+	
+	
+	/**
+	 * Method to return in the response body the event name to be triggered in
+	 * Dialogflow
+	 * 
+	 * @param builder
+	 * @param eventName
+	 */
+	protected void triggerCustomEvent(ResponseBuilder builder, String eventName) {
+		WebhookResponse webhookResponse = new WebhookResponse();
+		EventInput eventInput = new EventInput();
+		eventInput.setName(eventName);
+		webhookResponse.setFollowupEventInput(eventInput);
+		builder.setWebhookResponse$actions_on_google(webhookResponse);
+
 	}
 
 }

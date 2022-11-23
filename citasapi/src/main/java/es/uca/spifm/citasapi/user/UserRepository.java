@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UserRepository extends JpaRepository<User, String>{
 
-	Optional<User> findByIdentityDocument(String userIdentityDocument);
+	Optional<User> findByIdentityDocumentNumber(String identityDocumentNumber);
+
 
 }

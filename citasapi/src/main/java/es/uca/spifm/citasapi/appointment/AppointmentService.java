@@ -25,21 +25,21 @@ public class AppointmentService {
 		this.appointmentRepository = appointmentRepository;
 	}
 
-	public List<Appointment> findPastAppointments(String userIdentityDocument) throws UserNotFoundException {
-		Optional<User> user = userRepository.findByIdentityDocument(userIdentityDocument);
+	public List<Appointment> findPastAppointments(String userId) throws UserNotFoundException {
+		Optional<User> user = userRepository.findById(userId);
 		if (user.isPresent()) {
-			return appointmentRepository.findByUserAndDateTimeLessThan(user, LocalDateTime.now());
+			return appointmentRepository.findByUserAndDateTimeLessThan(user.get(), LocalDateTime.now());
 		} else {
-			throw new UserNotFoundException(userIdentityDocument);
+			throw new UserNotFoundException(userId);
 		}
 
 	}
 
-	public Optional<Appointment> findNextAppointment(String userIdentityDocument) throws UserNotFoundException {
-		Optional<User> user = userRepository.findByIdentityDocument(userIdentityDocument);
+	public Optional<Appointment> findNextAppointment(String userId) throws UserNotFoundException {
+		Optional<User> user = userRepository.findById(userId);
 		if (user.isPresent()) {
 
-			List<Appointment> data = appointmentRepository.findByUserAndDateTimeGreaterThanEqualOrderByDateTimeAsc(user,
+			List<Appointment> data = appointmentRepository.findByUserAndDateTimeGreaterThanEqualOrderByDateTimeAsc(user.get(),
 					LocalDateTime.now());
 			if (data.size() > 0) {
 				return Optional.of(data.get(0));
@@ -48,18 +48,18 @@ public class AppointmentService {
 			}
 
 		} else {
-			throw new UserNotFoundException(userIdentityDocument);
+			throw new UserNotFoundException(userId);
 		}
 	}
 
-	public Appointment confirmAppointment(String userId, LocalDateTime dateTime, AppointmentType type, String subject)
+	public Appointment confirmAppointment(String userId, LocalDateTime dateTime, AppointmentType type)
 			throws UserNotFoundException {
 
-		Optional<User> user = userRepository.findByIdentityDocument(userId);
+		Optional<User> user = userRepository.findById(userId);
 		if (user.isPresent()) {
 
-			List<Appointment> appointments = appointmentRepository.findByAssignedDoctorAndDateTimeBetween(
-					user.get().getDoctor(), dateTime.truncatedTo(ChronoUnit.HOURS),
+			List<Appointment> appointments = appointmentRepository.findByDateTimeBetween(
+					dateTime.truncatedTo(ChronoUnit.HOURS),
 					dateTime.plusHours(1).truncatedTo(ChronoUnit.HOURS));
 
 			if (appointments.size() == 0) {
@@ -67,11 +67,9 @@ public class AppointmentService {
 				appointment.setUser(user.get());
 				appointment.setDateTime(dateTime);
 				appointment.setType(type);
-				appointment.setSubject(subject);
-				appointment.setAssignedDoctor(user.get().getDoctor());
 				return appointmentRepository.save(appointment);
 			} else {
-				throw new AppointmentNotAvailableException(user.get().getDoctor(), dateTime);
+				throw new AppointmentNotAvailableException(dateTime);
 			}
 
 		} else {
@@ -80,12 +78,6 @@ public class AppointmentService {
 
 	}
 
-	public Appointment confirmAppointment(String userId, LocalDateTime dateTime, AppointmentType type)
-			throws UserNotFoundException {
-
-		return confirmAppointment(userId, dateTime, type, "");
-
-	}
 
 	public LocalDateTime findNextAvailableSlot(AppointmentType type) {
 
@@ -111,7 +103,6 @@ public class AppointmentService {
 	}
 
 	public List<Appointment> findAll() {
-		// TODO Auto-generated method stub
 		return appointmentRepository.findAll();
 	}
 }
