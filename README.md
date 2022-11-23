@@ -26,7 +26,7 @@ Webhooks for this appointment service:
    * Intent name: SignIn
    * Input parameters: 
      * identityDocumentNumber (@sys.any)
-     * person (@sys.person)
+     * givenName (@sys.person)
    * Postconditions:
      * Provides new context: user-identified
   
@@ -66,4 +66,6 @@ Webhooks for this appointment service:
 
 List of entities for this appointment service:
 * AppointmentType
-  * Values: CUT, COLORING, CONSULTATION
+  * CUT: corte, pelar, recortar
+  * COLORING: colorear, teñir, pintar
+  * CONSULTATION: consultar, dudas, aconsejar
