@@ -1,3 +1,5 @@
+This is a repository containing a Java Spring Boot application for exposing some HTTP APIs to work with an appointment management system via Dialogflow. It uses a in-memory database.
+
 ## SETUP
 
 1. Install Java (version 11 is required)
