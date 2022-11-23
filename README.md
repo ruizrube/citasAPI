@@ -1,11 +1,15 @@
 ## SETUP
 
 1. Install Java (version 11 is required)
-2. Install and configure the [ngrok](http://ngrok.com)	tool
-3. Configure key and run ngrok from the command line: $ **ngrok http 80**
-4. Download file: *citasapi-x-y.z.jar* from [Github Releases](https://github.com/ruizrube/citasAPI/releases) 
-5. run: java -jar *citasapi-x-y.z.jar* from the command line
-6. Check https://urlgeneratedbyngrok/users 
+2. Download asset: *citasapi-x-y.z.jar* from [Github Releases](https://github.com/ruizrube/citasAPI/releases) 
+3. Run: $ **java -jar citasapi-x-y.z.jar** from the command line
+4. Check that [http://localhost:8080/users](http://localhost:8080/users) provides some demo users in JSON format
+5. Install the [ngrok](http://ngrok.com)	tool and configure it with the provided key
+6. Run ngrok from the command line: $ **ngrok http 8080** (please aware of the number port)
+7. Copy the forwarding URL **https://RANDOMNUMBERS.eu.ngrok.io** -> http://localhost:8080 
+8. Check https://RANDOMNUMBERS.eu.ngrok.io/users provides some demo users in JSON format
+9. Configure dialogflow fulfillment URL to: https://RANDOMNUMBERS.eu.ngrok.io/dialogflow
+10. Please, revise that your intent names and param names match with the expected ones. They are provided below:
 
 ## REST API
 
@@ -18,7 +22,6 @@ HTTP APIs for this appointment service
   * URI: https://server/dialogflow
 
 ## DIALOGFLOW WEBHOOKS
-
 
 Webhooks for this appointment service:
 
