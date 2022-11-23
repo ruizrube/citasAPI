@@ -3,7 +3,7 @@
 1. Install Java (version 11 is required)
 2. Install and configure the [ngrok](http://ngrok.com)	tool
 3. Configure key and run ngrok from the command line: $ **ngrok http 80**
-4. Download file: *citasapi-x-y.z.jar* from [Github Releases](https://github.com/ruizrube/healthAppointments/releases) 
+4. Download file: *citasapi-x-y.z.jar* from [Github Releases](https://github.com/ruizrube/citasAPI/releases) 
 5. run: java -jar *citasapi-x-y.z.jar* from the command line
 6. Check https://urlgeneratedbyngrok/users 
 
