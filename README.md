@@ -1,3 +1,12 @@
+## SETUP
+
+1. Install Java (version 11 is required)
+2. Install and configure the [ngrok](http://ngrok.com)	tool
+3. Configure key and run ngrok from the command line: $ **ngrok http 80**
+4. Download file: *citasapi-x-y.z.jar* from [Github Releases](https://github.com/ruizrube/healthAppointments/releases) 
+5. run: java -jar *citasapi-x-y.z.jar* from the command line
+6. Check https://urlgeneratedbyngrok/users 
+
 ## REST API
 
 HTTP APIs for this appointment service 
@@ -15,32 +24,44 @@ Webhooks for this appointment service:
 
 * Sign in a user on the system 
    * Intent name: SignIn
-   * Input parameter: identityDocumentNumber (@sys.any)
-   * Required context: user-identified
+   * Input parameters: 
+     * identityDocumentNumber (@sys.any)
+     * person (@sys.person)
+   * Postconditions:
+     * Provides new context: user-identified
+  
 
 * Get the next appointment of the user
   * Intent name: NextAppointment
-  * Required context: UserIdentified
+  * Preconditions:
+     * Requires context: user-identified
+
 
 * Make a new appointment
   * Intent name: MakeAppointment
-  * Required context: user-identified
-  * Provides context: appointment-pending
-  
+  * Input parameters: 
+    * appointmentType (@AppointmentType)
+  * Preconditions:
+     * Requires context: user-identified
+  * Postconditions:
+     * Provides new context: appointment-pending
+ 
 
 * Confirm the current appointment 
   * Intent name: MakeAppointment-confirm
-  * Input context: user-identified
-  * Input context: appointment-pending
-  * Input parameter: appointmentType (@AppointmentType)
-  * Input parameter: subject (@sys.any)
-  * Removes context: appointment-pending
-
+  * Preconditions:
+     * Requires context: user-identified
+     * Requires context: appointment-pending
+  * Postconditions:
+    * Removes context: appointment-pending
 
 * Cancel the current appointment 
   * Intent name: MakeAppointment-cancel 
-  * Required context: UserIdentified
-  * Removes context: appointment-pending
+  * Preconditions:
+    * Requires context: user-identified
+    * Requires context: appointment-pending
+  * Postconditions:
+    * Removes context: appointment-pending
   
 
 List of entities for this appointment service:
