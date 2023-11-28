@@ -12,13 +12,13 @@ Intents and Webhooks for this appointment service:
      * identityDocumentNumber (@sys.any)
      * givenName (@sys.person)
    * Postconditions:
-     * Provides new context: user-identified
+     * The user is now identified
   
 
 * Get the next appointment of the user
   * Intent name: NextAppointment
   * Preconditions:
-     * Requires context: user-identified
+     * The user must be properly identified
 
 
 * Make a new appointment
@@ -26,25 +26,25 @@ Intents and Webhooks for this appointment service:
   * Input parameters: 
     * appointmentType (@AppointmentType)
   * Preconditions:
-     * Requires context: user-identified
+     * The user must be properly identified
   * Postconditions:
-     * Provides new context: appointment-pending
+     * An appointment is pending to confirm
  
 * Confirm the current appointment 
   * Intent name: MakeAppointment-confirm
   * Preconditions:
-     * Requires context: user-identified
-     * Requires context: appointment-pending
+     * The user must be properly identified
+     * An appointment is pending to confirm
   * Postconditions:
-    * Removes context: appointment-pending
+    * The appointment is now confirmed
 
 * Cancel the current appointment 
   * Intent name: MakeAppointment-cancel 
   * Preconditions:
-    * Requires context: user-identified
-    * Requires context: appointment-pending
+    * The user must be properly identified
+    * An appointment is pending to confirm
   * Postconditions:
-    * Removes context: appointment-pending
+    * The appointment is cancelled
   
 ## Entities
 List of entities for this appointment service:
