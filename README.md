@@ -68,8 +68,8 @@ Please, revise that your intent names and param names match with the expected on
 4. Check that [http://localhost:8080/users](http://localhost:8080/users) provides some demo users in JSON format. See other HTTP APIs below.
 5. Install the [ngrok](http://ngrok.com)	tool and configure it with the provided key
 6. Run ngrok from the command line: $ **ngrok http 8080** (please aware of the number port)
-7. Copy the forwarding URL **https://RANDOMNUMBERS.eu.ngrok.io** -> http://localhost:8080 
-8. Check https://RANDOMNUMBERS.eu.ngrok.io/users provides some demo users in JSON format
+7. Copy the forwarding URL **https://RANDOMNUMBERS.ngrok-free.app** -> http://localhost:8080 
+8. Check https://RANDOMNUMBERS.ngrok-free.app/users provides some demo users in JSON format
 
 ## REST API
 
